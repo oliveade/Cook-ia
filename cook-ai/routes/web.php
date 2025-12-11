@@ -15,15 +15,16 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth'])->group(function () {
 
-   Route::prefix('profile')->group(function () {
+    Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
 
     Route::get('/recipes', [RecipeController::class, 'index'])->name('recipes.index');
+    Route::get('/recipes/create', [RecipeController::class, 'create'])->name('recipes.create');
     Route::get('/recipes/{recipe}', [RecipeController::class, 'show'])->name('recipes.show');
-    Route::get('/recipes/new', [RecipeController::class, 'create'])->name('recipes.create');
+    
     Route::post('/recipes/generate', [RecipeController::class, 'generate'])->name('recipes.generate');
 
     Route::get('/shopping-lists', [ShoppingListController::class, 'index'])->name('shopping-lists.index');
@@ -31,5 +32,4 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/shopping-lists/{list}', [ShoppingListController::class, 'show'])->name('shopping-lists.show');
 });
 
-require_once __DIR__.'/auth.php';
-
+require_once __DIR__ . '/auth.php';

@@ -1,64 +1,125 @@
 <section>
     <header>
         <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profile Information') }}
+            Informations du compte & préférences
         </h2>
 
         <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your account's profile information and email address.") }}
+            Mets à jour ton nom, ton email et tes préférences pour la génération de recettes.
         </p>
     </header>
 
-    <form id="send-verification" method="post" action="{{ route('verification.send') }}">
-        @csrf
-    </form>
+    @if (session('status') === 'profile-updated')
+        <p class="mt-2 text-sm text-green-600">
+            Profil mis à jour avec succès 
+        </p>
+    @endif
 
     <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
         @csrf
         @method('patch')
 
+        {{-- Nom --}}
         <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
+            <label class="block text-sm font-medium text-gray-700">
+                Nom
+            </label>
+            <input type="text" name="name" value="{{ old('name', $user->name) }}"
+                   class="mt-1 block w-full border rounded-md p-2">
+            @error('name')
+                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+            @enderror
         </div>
 
+        {{-- Email --}}
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+            <label class="block text-sm font-medium text-gray-700">
+                Email
+            </label>
+            <input type="email" name="email" value="{{ old('email', $user->email) }}"
+                   class="mt-1 block w-full border rounded-md p-2">
+            @error('email')
+                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+            @enderror
+        </div>
 
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
+        <hr class="my-4">
 
-                        <button form="send-verification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
+        {{-- Objectif --}}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Objectif principal
+            </label>
+            <select name="goal" class="border rounded-md p-2">
+                <option value="">Aucun objectif particulier</option>
+                <option value="prise_masse" @selected(old('goal', $profile->goal ?? null) === 'prise_masse')>
+                    Prise de masse
+                </option>
+                <option value="perte_poids" @selected(old('goal', $profile->goal ?? null) === 'perte_poids')>
+                    Perte de poids
+                </option>
+                <option value="energie" @selected(old('goal', $profile->goal ?? null) === 'energie')>
+                    Gain d’énergie
+                </option>
+            </select>
+            @error('goal')
+                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+            @enderror
+        </div>
 
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
-            @endif
+        {{-- Intolérances --}}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Intolérances alimentaires
+            </label>
+
+            @php
+                $selectedIntolerances = old('intolerances', $profile->intolerances ?? []);
+            @endphp
+
+            <div class="space-y-1">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" name="intolerances[]" value="gluten"
+                           @checked(in_array('gluten', $selectedIntolerances))>
+                    <span class="ml-2 text-sm">Gluten</span>
+                </label>
+                <br>
+                <label class="inline-flex items-center">
+                    <input type="checkbox" name="intolerances[]" value="lactose"
+                           @checked(in_array('lactose', $selectedIntolerances))>
+                    <span class="ml-2 text-sm">Lactose</span>
+                </label>
+                <br>
+                <label class="inline-flex items-center">
+                    <input type="checkbox" name="intolerances[]" value="nuts"
+                           @checked(in_array('nuts', $selectedIntolerances))>
+                    <span class="ml-2 text-sm">Fruits à coque</span>
+                </label>
+            </div>
+
+            @error('intolerances')
+                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Objectif calorique --}}
+        <div>
+            <label class="block text-sm font-medium text-gray-700">
+                Objectif calorique quotidien (kcal)
+            </label>
+            <input type="number" name="calories_target"
+                   value="{{ old('calories_target', $profile->calories_target ?? null) }}"
+                   class="mt-1 block w-40 border rounded-md p-2">
+            @error('calories_target')
+                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+            @enderror
         </div>
 
         <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
-
-            @if (session('status') === 'profile-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600"
-                >{{ __('Saved.') }}</p>
-            @endif
+            <button type="submit"
+                    class="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">
+                Enregistrer
+            </button>
         </div>
     </form>
 </section>

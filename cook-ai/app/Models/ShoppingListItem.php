@@ -2,15 +2,23 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ShoppingListItem extends Model
 {
-    protected $fillable = ['shopping_list_id', 'ingredient_id', 'quantity', 'unit'];
+    use HasFactory;
 
-    public function list()
+    protected $fillable = [
+        'shopping_list_id',
+        'ingredient_id',
+        'quantity',
+        'unit',
+    ];
+
+    public function shoppingList()
     {
-        return $this->belongsTo(ShoppingList::class, 'shopping_list_id');
+        return $this->belongsTo(ShoppingList::class);
     }
 
     public function ingredient()

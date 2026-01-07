@@ -11,37 +11,37 @@ use Illuminate\Support\Facades\Http;
 
 class RecipeController extends Controller
 {
-   public function index(Request $request)
-{
-    $user = auth()->user();
+    public function index(Request $request)
+    {
+        $user = auth()->user();
 
-    $query = Recipe::where('user_id', $user->id)
-        ->with('ingredients');
+        $query = Recipe::where('user_id', $user->id)
+            ->with('ingredients');
 
-    if ($request->filled('q')) {
-        $search = $request->q;
+        if ($request->filled('q')) {
+            $search = $request->q;
 
-        $query->where(function ($q) use ($search) {
-            $q->where('title', 'like', "%{$search}%")
-              ->orWhereHas('ingredients', function ($sub) use ($search) {
-                  $sub->where('name', 'like', "%{$search}%");
-              });
-        });
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhereHas('ingredients', function ($sub) use ($search) {
+                        $sub->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $recipes = $query
+            ->latest()
+            ->get();
+
+        return view('recipes.index', [
+            'recipes' => $recipes,
+            'filters' => $request->only(['q', 'type']),
+        ]);
     }
-
-    if ($request->filled('type')) {
-        $query->where('type', $request->type);
-    }
-
-    $recipes = $query
-        ->latest()
-        ->get();
-
-    return view('recipes.index', [
-        'recipes' => $recipes,
-        'filters' => $request->only(['q', 'type']),
-    ]);
-}
 
 
     public function create()

@@ -5,12 +5,10 @@
         </h2>
     </x-slot>
 
-    {{-- Recherche --}}
     <div class="bg-white p-6 rounded-xl shadow mb-6 max-w-5xl mx-auto sm:px-6 lg:px-8">
         <form method="GET" action="{{ route('recipes.index') }}"
               class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-            {{-- Recherche texte --}}
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Recherche
@@ -24,7 +22,6 @@
                 />
             </div>
 
-            {{-- Type --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Type de plat
@@ -40,7 +37,6 @@
                 </select>
             </div>
 
-            {{-- Boutons --}}
             <div class="flex items-end gap-2">
                 <button
                     type="submit"

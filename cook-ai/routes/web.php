@@ -6,7 +6,7 @@ use App\Http\Controllers\ShoppingListController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('dashboard');
+    return redirect()->route('login');
 });
 
 Route::get('/dashboard', function () {

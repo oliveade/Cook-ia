@@ -11,13 +11,38 @@ use Illuminate\Support\Facades\Http;
 
 class RecipeController extends Controller
 {
-    public function index()
-    {
-        $user = Auth::user();
-        $recipes = $user->recipes()->latest()->get();
+   public function index(Request $request)
+{
+    $user = auth()->user();
 
-        return view('recipes.index', compact('recipes'));
+    $query = Recipe::where('user_id', $user->id)
+        ->with('ingredients');
+
+    if ($request->filled('q')) {
+        $search = $request->q;
+
+        $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+              ->orWhereHas('ingredients', function ($sub) use ($search) {
+                  $sub->where('name', 'like', "%{$search}%");
+              });
+        });
     }
+
+    if ($request->filled('type')) {
+        $query->where('type', $request->type);
+    }
+
+    $recipes = $query
+        ->latest()
+        ->get();
+
+    return view('recipes.index', [
+        'recipes' => $recipes,
+        'filters' => $request->only(['q', 'type']),
+    ]);
+}
+
 
     public function create()
     {

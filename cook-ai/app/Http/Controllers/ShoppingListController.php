@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\ShoppingList;
-use App\Models\ShoppingListItem;
 use App\Models\Recipe;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ShoppingListController extends Controller
 {
+    /**
+     * Affiche :
+     * - les recettes de l'utilisateur (pour sélection)
+     * - les listes de courses déjà créées
+     */
     public function index()
     {
         $user = Auth::user();
@@ -26,18 +30,22 @@ class ShoppingListController extends Controller
         return view('shopping_lists.index', compact('recipes', 'lists'));
     }
 
+    /**
+     * Crée une liste de courses à partir
+     * d'une sélection libre de recettes
+     */
     public function store(Request $request)
     {
         $user = Auth::user();
 
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'recipes' => ['required', 'array', 'min:1'],
-            'recipes.*' => ['integer', 'exists:recipes,id'],
+            'title'       => ['required', 'string', 'max:255'],
+            'recipes'     => ['required', 'array', 'min:1'],
+            'recipes.*'   => ['integer', 'exists:recipes,id'],
         ], [
             'recipes.required' => 'Sélectionne au moins une recette.',
         ]);
-
+        
         $recipes = Recipe::where('user_id', $user->id)
             ->whereIn('id', $data['recipes'])
             ->with('ingredients')
@@ -54,7 +62,10 @@ class ShoppingListController extends Controller
             'title'   => $data['title'],
         ]);
 
-
+        /**
+         * - on additionne les quantités
+         * - on distingue par ingrédient + unité
+         */
         $aggregated = [];
 
         foreach ($recipes as $recipe) {
@@ -70,10 +81,10 @@ class ShoppingListController extends Controller
                     ];
                 }
 
-                $qty = $ingredient->pivot->quantity ?? 0;
-                $aggregated[$key]['quantity'] += $qty;
+                $aggregated[$key]['quantity'] += (float) ($ingredient->pivot->quantity ?? 0);
             }
         }
+
         foreach ($aggregated as $itemData) {
             $shoppingList->items()->create($itemData);
         }
@@ -83,6 +94,9 @@ class ShoppingListController extends Controller
             ->with('status', 'Liste de courses créée avec succès !');
     }
 
+    /**
+     * Affichage d'une liste de courses
+     */
     public function show(ShoppingList $list)
     {
         abort_unless($list->user_id === Auth::id(), 403);
